@@ -1,0 +1,133 @@
+/* =========================
+   TRANSIÇÕES GLOBAIS
+========================= */
+
+* {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+
+.btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge {
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.badge.bg-success,
+.badge.bg-danger {
+  animation: pulseBadge 0.4s ease;
+}
+
+@keyframes pulseBadge {
+  from {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* =========================
+   LISTA DE PROPOSTAS
+========================= */
+
+#listaPropostas > div {
+  animation: fadeUp 0.35s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   LOADING
+========================= */
+
+#loadingPropostas {
+  animation: fadeIn 0.3s ease both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =========================
+   MODAIS
+========================= */
+
+.modal.fade .modal-dialog {
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* =========================
+   MODIFICAÇÕES (CARDS)
+========================= */
+
+#listaModificacoes .card {
+  animation: fadeUp 0.25s ease both;
+}
+
+/* =========================
+   INPUTS
+========================= */
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+}

@@ -1,0 +1,32 @@
+CREATE DATABASE sistema_propostas
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_general_ci;
+
+USE sistema_propostas;
+
+CREATE TABLE propostas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  cliente VARCHAR(255) NOT NULL,
+  data_inicio DATE NOT NULL,
+  data_fim DATE NOT NULL,
+  observacao TEXT,
+  criada_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+  atualizada_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE proposta_modificacoes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  proposta_id INT NOT NULL,
+  descricao TEXT NOT NULL,
+  data_modificacao DATE NOT NULL,
+  criada_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+  atualizada_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_proposta
+    FOREIGN KEY (proposta_id)
+    REFERENCES propostas(id)
+    ON DELETE CASCADE
+);
+
+ALTER TABLE propostas
+ADD COLUMN data_solicitacao_cliche DATE NULL,
+ADD COLUMN data_chegada_cliche DATE NULL;
