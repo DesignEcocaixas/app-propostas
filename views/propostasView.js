@@ -107,12 +107,13 @@ function propostasView() {
               <input type="text" class="form-control" id="cliente">
             </div>
           </div>
-          
+
           <div class="col-md-6">
             <label class="form-label">Designer</label>
             <select class="form-select" id="designer">
               <option value="">Selecione</option>
-              <option value="David Salleth">David Salleth</option>
+              <option value="David">David</option>
+              <option value="Salleth">Salleth</option>
             </select>
           </div>
 
