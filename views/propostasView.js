@@ -12,6 +12,10 @@ function propostasView() {
   <!-- Font Awesome (opcional, mas recomendado) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="/public/css/transitions.css">
 
 </head>
@@ -19,7 +23,9 @@ function propostasView() {
 
 <!-- ================= HEADER ================= -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-  <span class="navbar-brand">📄 Propostas</span>
+  <span class="navbar-brand">
+    <i class="fa-solid fa-file-lines me-1"></i> Propostas
+  </span>
 
   <form class="d-flex ms-auto gap-2">
     <input type="text" class="form-control" placeholder="Cliente" id="filtroCliente">
