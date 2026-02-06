@@ -4,8 +4,8 @@ const mysql = require('mysql2');
 // Pool de conexões (mais seguro e performático)
 const pool = mysql.createPool({
     host: 'localhost',      // ou IP do servidor
-    user: 'root',           // usuário do mysql
-    password: '1234', // senha do mysql
+    user: 'appuser',           // usuário do mysql
+    password: 'apppropostas', // senha do mysql
     database: 'sistema_propostas',
     waitForConnections: true,
     connectionLimit: 10,
