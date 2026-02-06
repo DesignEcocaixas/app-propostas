@@ -1,0 +1,13 @@
+# dependências
+node_modules/
+
+# arquivos sensíveis
+db.js
+.env
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
