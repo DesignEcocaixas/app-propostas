@@ -255,7 +255,14 @@ async function buscarPropostas(page = 1) {
       `&data_inicio=${inicio}&data_fim=${fim}&page=${page}`;
 
     const res = await fetch(url);
-    const { data, pagination } = await res.json();
+
+    if (!res.ok) {
+      throw new Error(`Erro HTTP ${res.status}`);
+    }
+
+    const json = await res.json();
+    const data = Array.isArray(json.data) ? json.data : [];
+    const pagination = json.pagination || null;
 
     const lista = document.getElementById('listaPropostas');
     lista.innerHTML = '';
@@ -286,7 +293,7 @@ async function buscarPropostas(page = 1) {
               </p>
 
               <span class="badge bg-info">
-                ${p.total_modificacoes} modificação${p.total_modificacoes !== 1 ? 's' : ''}
+                ${p.total_modificacoes || 0} modificação${p.total_modificacoes !== 1 ? 's' : ''}
               </span>
 
               <div class="mt-3 d-flex gap-2">
@@ -309,7 +316,13 @@ async function buscarPropostas(page = 1) {
     renderizarPaginacao(pagination);
 
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao buscar propostas:', err);
+
+    document.getElementById('listaPropostas').innerHTML = `
+      <div class="col-12 text-center text-danger">
+        Erro ao carregar propostas
+      </div>
+    `;
   } finally {
     esconderLoadingPropostas();
   }
