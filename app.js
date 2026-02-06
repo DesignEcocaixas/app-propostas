@@ -26,6 +26,7 @@ app.post('/propostas', async (req, res) => {
   try {
     const {
       cliente,
+      designer,
       data_inicio,
       data_fim,
       observacao,
@@ -34,27 +35,32 @@ app.post('/propostas', async (req, res) => {
       modificacoes = []
     } = req.body;
 
+
     const [result] = await db.query(
       `
       INSERT INTO propostas
       (
         cliente,
+        designer,
         data_inicio,
         data_fim,
         observacao,
         data_solicitacao_cliche,
         data_chegada_cliche
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+
       `,
       [
         cliente,
+        designer,
         data_inicio,
         data_fim,
         observacao || null,
         data_solicitacao_cliche || null,
         data_chegada_cliche || null
       ]
+
     );
 
     const propostaId = result.insertId;
@@ -173,6 +179,7 @@ app.put('/propostas/:id', async (req, res) => {
 
     const {
       cliente,
+      designer,
       data_inicio,
       data_fim,
       observacao,
@@ -181,11 +188,11 @@ app.put('/propostas/:id', async (req, res) => {
       modificacoes = []
     } = req.body;
 
-    // atualiza proposta
     await db.query(
       `
       UPDATE propostas SET
         cliente = ?,
+        designer = ?,
         data_inicio = ?,
         data_fim = ?,
         observacao = ?,
@@ -195,22 +202,23 @@ app.put('/propostas/:id', async (req, res) => {
       `,
       [
         cliente,
+        designer || null,
         data_inicio,
         data_fim,
-        observacao,
+        observacao || null,
         data_solicitacao_cliche || null,
         data_chegada_cliche || null,
         id
       ]
     );
 
-    // 🔥 REMOVE TODAS AS MODIFICAÇÕES ANTIGAS
+    // remove modificações antigas
     await db.query(
       'DELETE FROM proposta_modificacoes WHERE proposta_id = ?',
       [id]
     );
 
-    // 🔥 INSERE AS MODIFICAÇÕES ATUAIS DO MODAL
+    // insere modificações atuais
     for (const m of modificacoes) {
       await db.query(
         `

@@ -162,6 +162,7 @@ async function salvarProposta() {
 
   const payload = {
     cliente: document.getElementById('cliente').value,
+    designer: document.getElementById('designer').value || null,
     data_inicio: document.getElementById('dataInicio').value,
     data_fim: document.getElementById('dataFim').value,
     observacao: document.getElementById('observacao').value,
@@ -373,11 +374,14 @@ async function editarProposta(id) {
     const { proposta, modificacoes } = data;
 
     // Preenche campos principais
+    // Preenche campos principais
     document.getElementById('propostaId').value = proposta.id;
     document.getElementById('cliente').value = proposta.cliente || '';
+    document.getElementById('designer').value = proposta.designer || '';
     document.getElementById('dataInicio').value = proposta.data_inicio?.split('T')[0] || '';
     document.getElementById('dataFim').value = proposta.data_fim?.split('T')[0] || '';
     document.getElementById('observacao').value = proposta.observacao || '';
+
 
     // Campos de clichê
     document.getElementById('dataSolicitacaoCliche').value =
