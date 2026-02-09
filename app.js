@@ -53,13 +53,14 @@ app.post('/propostas', async (req, res) => {
       `,
       [
         cliente,
-        designer,
-        data_inicio,
-        data_fim,
+        designer || null,
+        data_inicio || null,
+        data_fim || null,
         observacao || null,
         data_solicitacao_cliche || null,
         data_chegada_cliche || null
       ]
+
 
     );
 
@@ -203,13 +204,14 @@ app.put('/propostas/:id', async (req, res) => {
       [
         cliente,
         designer || null,
-        data_inicio,
-        data_fim,
+        data_inicio || null,
+        data_fim || null,
         observacao || null,
         data_solicitacao_cliche || null,
         data_chegada_cliche || null,
         id
       ]
+
     );
 
     // remove modificações antigas
