@@ -12,43 +12,158 @@ function propostasView() {
   <!-- Font Awesome (opcional, mas recomendado) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="/public/css/transitions.css">
 
-    <style>
-    /* Remove aparência de botão dos números */
-    .pagination .page-item:not(.active) .page-link {
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      padding: 4px 8px;
-    }
+  <style>
+  html, body {
+    height: 100%;
+  }
 
-    /* Número ativo com destaque minimalista */
-    .pagination .page-item.active .page-link {
-      background: transparent;
-      border: none;
-      font-weight: 600;
-      color: #0d6efd; /* pode alterar para sua cor */
-    }
+  /* ===== DARK CINZA FORÇADO (inclusive bg-light) ===== */
+  body,
+  body.bg-light {
+    margin: 0;
+    background-color: #121212 !important; /* cinza quase preto */
+    color: #e5e5e5 !important;
+    min-height: 100vh;
+    position: relative;
+  }
 
-    /* Remove bordas também das setas se quiser */
-    .pagination .page-link {
-      border-radius: 0;
-    }
-  </style>
+  /* ===== GRANULADO CINZA ===== */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 3px 3px;
+    background-position: 0 0, 1.5px 1.5px;
+    opacity: 0.35;
+  }
+
+  body > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== NAVBAR ===== */
+  .navbar,
+  .bg-dark {
+    background-color: #1a1a1a !important;
+  }
+
+  /* ===== CARDS E MODAIS ===== */
+  .card,
+  .modal-content {
+    background-color: #1e1e1e !important;
+    border: 1px solid #2a2a2a !important;
+    color: #e5e5e5 !important;
+  }
+
+  .modal-header {
+    background-color: #181818 !important;
+    border-bottom: 1px solid #2a2a2a !important;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #2a2a2a !important;
+  }
+
+  /* ===== INPUTS ===== */
+  .form-control {
+    background-color: #1a1a1a !important;
+    border: 1px solid #2f2f2f !important;
+    color: #e5e5e5 !important;
+  }
+
+  .form-control:focus {
+    background-color: #1a1a1a !important;
+    border-color: #555 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.05);
+    color: #ffffff !important;
+  }
+
+  textarea {
+    background-color: #1a1a1a !important;
+    color: #e5e5e5 !important;
+  }
+
+  .form-label,
+  .text-muted {
+    color: #9a9a9a !important;
+  }
+
+  /* ===== BOTÕES ===== */
+  .btn-secondary {
+    background-color: #2a2a2a !important;
+    border: none !important;
+  }
+
+  .btn-outline-light {
+    border-color: #444 !important;
+    color: #d1d1d1 !important;
+  }
+
+  .btn-outline-light:hover {
+    background-color: #2a2a2a !important;
+  }
+
+  /* ===== PAGINAÇÃO ===== */
+  .pagination .page-item:not(.active) .page-link {
+    background: transparent !important;
+    border: none !important;
+    color: #cfcfcf !important;
+    padding: 4px 8px;
+  }
+
+  .pagination .page-item.active .page-link {
+    background: transparent !important;
+    border: none !important;
+    font-weight: 600;
+    color: #ffffff !important;
+  }
+
+  .pagination .page-link {
+    border-radius: 0;
+  }
+
+  /* ===== BADGES ===== */
+  .badge.bg-secondary {
+    background-color: #2a2a2a !important;
+  }
+
+  /* ===== BADGE MODIFICAÇÕES COM DEGRADÊ ===== */
+  .badge.bg-info {
+    background: linear-gradient(135deg, #0026FF, #FF0088) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 600;
+  }
+
+  /* ===== LOADING ===== */
+  .spinner-border {
+    color: #ffffff !important;
+  }
+    /* ===== BOTÃO FECHAR BRANCO ===== */
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.9;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+</style>
 
 </head>
 <body class="bg-light">
 
 <!-- ================= HEADER ================= -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-  <span class="navbar-brand">
-    <i class="fa-solid fa-file-lines me-1"></i> Propostas
-  </span>
+  <span class="navbar-brand">Gerenciar propotas de artes</span>
 
   <form class="d-flex ms-auto gap-2">
     <input type="text" class="form-control" placeholder="Cliente" id="filtroCliente">
@@ -130,16 +245,6 @@ function propostasView() {
               <input type="text" class="form-control" id="cliente">
             </div>
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Designer</label>
-            <select class="form-select" id="designer">
-              <option value="">Selecione</option>
-              <option value="David">David</option>
-              <option value="Salleth">Salleth</option>
-            </select>
-          </div>
-
         </div>
 
         <!-- 🔹 PRAZO DA PROPOSTA -->
