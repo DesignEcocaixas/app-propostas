@@ -24,6 +24,13 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // =======================
 app.post('/propostas', async (req, res) => {
   try {
+
+    function tratarData(valor) {
+      if (!valor) return null;
+      if (typeof valor === 'string' && valor.trim() === '') return null;
+      return valor;
+    }
+
     const {
       cliente,
       designer,
@@ -34,7 +41,6 @@ app.post('/propostas', async (req, res) => {
       data_chegada_cliche,
       modificacoes = []
     } = req.body;
-
 
     const [result] = await db.query(
       `
@@ -49,19 +55,16 @@ app.post('/propostas', async (req, res) => {
         data_chegada_cliche
       )
       VALUES (?, ?, ?, ?, ?, ?, ?)
-
       `,
       [
         cliente,
         designer || null,
-        data_inicio || null,
-        data_fim || null,
+        tratarData(data_inicio),
+        tratarData(data_fim),
         observacao || null,
-        data_solicitacao_cliche || null,
-        data_chegada_cliche || null
+        tratarData(data_solicitacao_cliche),
+        tratarData(data_chegada_cliche)
       ]
-
-
     );
 
     const propostaId = result.insertId;
@@ -74,7 +77,11 @@ app.post('/propostas', async (req, res) => {
         (proposta_id, descricao, data_modificacao)
         VALUES (?, ?, ?)
         `,
-        [propostaId, m.descricao, m.data_modificacao]
+        [
+          propostaId,
+          m.descricao || null,
+          tratarData(m.data_modificacao)
+        ]
       );
     }
 
