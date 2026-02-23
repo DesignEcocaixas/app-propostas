@@ -18,6 +18,29 @@ function propostasView() {
 
   <link rel="stylesheet" href="/public/css/transitions.css">
 
+    <style>
+    /* Remove aparência de botão dos números */
+    .pagination .page-item:not(.active) .page-link {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 4px 8px;
+    }
+
+    /* Número ativo com destaque minimalista */
+    .pagination .page-item.active .page-link {
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      color: #0d6efd; /* pode alterar para sua cor */
+    }
+
+    /* Remove bordas também das setas se quiser */
+    .pagination .page-link {
+      border-radius: 0;
+    }
+  </style>
+
 </head>
 <body class="bg-light">
 
@@ -73,8 +96,8 @@ function propostasView() {
   </div>
 
   <!-- PAGINAÇÃO -->
-  <nav class="mt-4">
-    <ul class="pagination justify-content-center" id="paginacaoPropostas">
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center" id="paginacaoPropostas">
       <!-- JS -->
     </ul>
   </nav>

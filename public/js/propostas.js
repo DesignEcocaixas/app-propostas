@@ -536,28 +536,37 @@ function renderizarPaginacao(pagination) {
 
   const { page, totalPages } = pagination;
 
+  // BOTÃO ANTERIOR
   ul.innerHTML += `
     <li class="page-item ${page === 1 ? 'disabled' : ''}">
-      <a class="page-link" href="#" onclick="buscarPropostas(${page - 1})">
-        Anterior
+      <a class="page-link d-flex align-items-center justify-content-center"
+         href="#"
+         onclick="buscarPropostas(${page - 1})">
+        <i class="fa-solid fa-chevron-left"></i>
       </a>
     </li>
   `;
 
+  // PÁGINAS
   for (let i = 1; i <= totalPages; i++) {
-    ul.innerHTML += `
-      <li class="page-item ${i === page ? 'active' : ''}">
-        <a class="page-link" href="#" onclick="buscarPropostas(${i})">
-          ${i}
-        </a>
-      </li>
-    `;
-  }
+  ul.innerHTML += `
+    <li class="page-item ${i === page ? 'active' : ''}">
+      <a class="page-link bg-transparent border-0 px-2"
+         href="#"
+         onclick="buscarPropostas(${i})">
+        ${i}
+      </a>
+    </li>
+  `;
+}
 
+  // BOTÃO PRÓXIMA
   ul.innerHTML += `
     <li class="page-item ${page === totalPages ? 'disabled' : ''}">
-      <a class="page-link" href="#" onclick="buscarPropostas(${page + 1})">
-        Próxima
+      <a class="page-link d-flex align-items-center justify-content-center"
+         href="#"
+         onclick="buscarPropostas(${page + 1})">
+        <i class="fa-solid fa-chevron-right"></i>
       </a>
     </li>
   `;
