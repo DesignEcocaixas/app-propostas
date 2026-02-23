@@ -160,6 +160,32 @@ function propostasView() {
 .btn-close:hover {
   opacity: 1;
 }
+
+/* ===== SELECT DARK ===== */
+.form-select {
+  background-color: #1a1a1a !important;
+  border: 1px solid #2f2f2f !important;
+  color: #e5e5e5 !important;
+}
+
+/* Ícone da seta branco */
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23e5e5e5' viewBox='0 0 16 16'%3e%3cpath d='M1.5 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+/* Focus */
+.form-select:focus {
+  background-color: #1a1a1a !important;
+  border-color: #555 !important;
+  box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.05);
+  color: #ffffff !important;
+}
+
+/* Dropdown options (melhora contraste) */
+.form-select option {
+  background-color: #1a1a1a;
+  color: #e5e5e5;
+}
 </style>
 
 </head>
