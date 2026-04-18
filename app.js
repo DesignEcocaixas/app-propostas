@@ -133,16 +133,17 @@ app.get('/admin/gabaritos', async (req, res) => {
   }
 });
 
+
 // =======================
-// API – BUSCAR DETALHES POR DIA (PARA O MODAL DO GRÁFICO)
+// API – BUSCAR DETALHES POR DIA (FILTRADO POR DATA_INICIO)
 // =======================
 app.get('/admin/api/propostas-por-dia/:data', async (req, res) => {
   try {
     const { data } = req.params; // Formato YYYY-MM-DD
     const [propostas] = await db.query(
-      `SELECT id, cliente, designer, DATE_FORMAT(data_inicio, '%H:%i') as hora 
+      `SELECT id, cliente, designer, DATE_FORMAT(criada_em, '%H:%i') as hora 
        FROM propostas 
-       WHERE DATE(criada_em) = ? 
+       WHERE data_inicio = ? 
        ORDER BY criada_em DESC`,
       [data]
     );
@@ -204,13 +205,12 @@ app.post('/admin/gabaritos/delete/:id', async (req, res) => {
   }
 });
 
-// Buscar propostas paginadas
+// Buscar propostas paginadas (Ajustado para 24 itens por página)
 app.get('/propostas', async (req, res) => {
   try {
     const { cliente, data_inicio, data_fim, page = 1 } = req.query;
 
-    // CORREÇÃO: Limite de itens por página ajustado para 24
-    const limit = 24;
+    const limit = 24; // Atualizado para suportar grid 4x6
     const offset = (page - 1) * limit;
 
     let where = 'WHERE 1=1';
@@ -419,19 +419,18 @@ app.put('/modificacoes/:id', async (req, res) => {
 });
 
 // =======================
-// ROTA – PAINEL / DASHBOARD
+// ROTA – PAINEL / DASHBOARD (DATA_INICIO)
 // =======================
 app.get('/admin', async (req, res) => {
   try {
-    // 1. Busca as propostas agrupadas por dia dos últimos 3 meses
-    // CORREÇÃO: Usando DATE_FORMAT no GROUP BY para evitar erro de only_full_group_by
+    // 1. Busca as propostas agrupadas por data_inicio dos últimos 3 meses
     const [rows] = await db.query(`
       SELECT 
-        DATE_FORMAT(criada_em, '%Y-%m-%d') as data_criacao,
+        DATE_FORMAT(data_inicio, '%Y-%m-%d') as data_criacao,
         COUNT(id) as total
       FROM propostas
-      WHERE criada_em >= DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL 2 MONTH), '%Y-%m-01')
-      GROUP BY DATE_FORMAT(criada_em, '%Y-%m-%d')
+      WHERE data_inicio >= DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL 2 MONTH), '%Y-%m-01')
+      GROUP BY DATE_FORMAT(data_inicio, '%Y-%m-%d')
       ORDER BY data_criacao ASC
     `);
 
@@ -439,11 +438,9 @@ app.get('/admin', async (req, res) => {
     const dataAtual = new Date();
     const mesesGrafico = [];
 
-    // Nomes dos meses em português
     const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
     for (let i = 0; i < 3; i++) {
-      // Cria a data voltando os meses
       const d = new Date(dataAtual.getFullYear(), dataAtual.getMonth() - i, 1);
       mesesGrafico.push({
         mes: d.getMonth(),
@@ -454,28 +451,25 @@ app.get('/admin', async (req, res) => {
       });
     }
 
-    // 3. Preenche os dias de cada mês com 0 (para o gráfico não ficar com buracos)
+    // 3. Preenche os dias de cada mês com 0
     mesesGrafico.forEach(m => {
       const diasNoMes = new Date(m.ano, m.mes + 1, 0).getDate();
       for (let dia = 1; dia <= diasNoMes; dia++) {
         m.dias.push(dia.toString().padStart(2, '0'));
-        m.totais.push(0); // Inicia vazio
+        m.totais.push(0);
       }
     });
 
-    // 4. Preenche com os dados reais vindos do Banco de Dados
+    // 4. Preenche com os dados reais vindos da consulta de data_inicio
     rows.forEach(row => {
-      // Pega ano, mes e dia separadamente da string YYYY-MM-DD para evitar fuso horário
       const [ano, mes, dia] = row.data_criacao.split('-');
       
       const mesIndex = mesesGrafico.findIndex(m => m.ano === parseInt(ano) && m.mes === (parseInt(mes) - 1));
       if (mesIndex !== -1) {
-        // -1 porque o array de totais começa no índice 0 (dia 1 = index 0)
         mesesGrafico[mesIndex].totais[parseInt(dia) - 1] = row.total;
       }
     });
 
-    // Renderiza enviando os dados JSON prontos
     res.send(painelView(mesesGrafico));
 
   } catch (err) {
