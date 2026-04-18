@@ -1,455 +1,217 @@
+// views/propostasView.js
+const adminHeader = require('./adminHeader');
+
 function propostasView() {
+  
+  // HTML da Barra de Pesquisa a ser injetado no Header
+  const filtrosHTML = `
+    <form class="flex w-full max-w-2xl gap-2 items-center" onsubmit="event.preventDefault(); buscarPropostas(1);">
+        <div class="relative flex-grow">
+            <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
+            <input type="text" id="filtroCliente" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar por cliente...">
+        </div>
+        
+        <div class="hidden md:flex items-center gap-2 shrink-0">
+            <input type="date" id="filtroInicio" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand transition-colors h-10">
+            <span class="text-gray-500 text-sm">até</span>
+            <input type="date" id="filtroFim" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand transition-colors h-10">
+        </div>
+
+        <button type="button" onclick="buscarPropostas(1)" class="bg-brand hover:bg-brandDark text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center shadow-lg shadow-brand/20 h-10 shrink-0">
+            <i class="fa-solid fa-search md:hidden"></i>
+            <span class="hidden md:inline">Pesquisar</span>
+        </button>
+    </form>
+  `;
+
   return `
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema de Propostas</title>
-
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Font Awesome (opcional, mas recomendado) -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-
+  <title>Sistema de Propostas | EcoAdmin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+      tailwind.config = { 
+          theme: { 
+              extend: { 
+                  colors: { brand: '#029723', brandDark: '#015e15', brandLight: '#e6f5e9' }, 
+                  fontFamily: { sans: ['Inter', 'sans-serif'] } 
+              } 
+          } 
+      }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/public/css/transitions.css">
 
-    <style>
-  html, body {
-    height: 100%;
-  }
-
-  /* ===== DARK CINZA FORÇADO (inclusive bg-light) ===== */
-  body,
-  body.bg-light {
-    margin: 0;
-    background-color: #121212 !important; /* cinza quase preto */
-    color: #e5e5e5 !important;
-    min-height: 100vh;
-    position: relative;
-  }
-
-  /* ===== GRANULADO CINZA ===== */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-      radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 3px 3px;
-    background-position: 0 0, 1.5px 1.5px;
-    opacity: 0.35;
-  }
-
-  body > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* ===== NAVBAR ===== */
-  .navbar,
-  .bg-dark {
-    background-color: #1a1a1a !important;
-  }
-
-  /* ===== CARDS E MODAIS ===== */
-  .card,
-  .modal-content {
-    background-color: #1e1e1e !important;
-    border: 1px solid #2a2a2a !important;
-    color: #e5e5e5 !important;
-  }
-
-  .modal-header {
-    background-color: #181818 !important;
-    border-bottom: 1px solid #2a2a2a !important;
-  }
-
-  .modal-footer {
-    border-top: 1px solid #2a2a2a !important;
-  }
-
-  /* ===== INPUTS ===== */
-  .form-control {
-    background-color: #1a1a1a !important;
-    border: 1px solid #2f2f2f !important;
-    color: #e5e5e5 !important;
-  }
-
-  .form-control:focus {
-    background-color: #1a1a1a !important;
-    border-color: #555 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.05);
-    color: #ffffff !important;
-  }
-
-  textarea {
-    background-color: #1a1a1a !important;
-    color: #e5e5e5 !important;
-  }
-
-  .form-label,
-  .text-muted {
-    color: #9a9a9a !important;
-  }
-
-  /* ===== BOTÕES ===== */
-  .btn-secondary {
-    background-color: #2a2a2a !important;
-    border: none !important;
-  }
-
-  .btn-outline-light {
-    border-color: #444 !important;
-    color: #d1d1d1 !important;
-  }
-
-  .btn-outline-light:hover {
-    background-color: #2a2a2a !important;
-  }
-
-  /* ===== PAGINAÇÃO ===== */
-  .pagination .page-item:not(.active) .page-link {
-    background: transparent !important;
-    border: none !important;
-    color: #cfcfcf !important;
-    padding: 4px 8px;
-  }
-
-  .pagination .page-item.active .page-link {
-    background: transparent !important;
-    border: none !important;
-    font-weight: 600;
-    color: #ffffff !important;
-  }
-
-  .pagination .page-link {
-    border-radius: 0;
-  }
-
-  /* ===== BADGES ===== */
-  .badge.bg-secondary {
-    background-color: #2a2a2a !important;
-  }
-
-  /* ===== BADGE MODIFICAÇÕES COM DEGRADÊ ===== */
-  .badge.bg-info {
-    background: linear-gradient(135deg, #0026FF, #FF0088) !important;
-    color: #ffffff !important;
-    border: none !important;
-    font-weight: 600;
-  }
-
-  /* ===== LOADING ===== */
-  .spinner-border {
-    color: #ffffff !important;
-  }
-    /* ===== BOTÃO FECHAR BRANCO ===== */
-.btn-close {
-  filter: invert(1) grayscale(100%) brightness(200%);
-  opacity: 0.9;
-}
-
-.btn-close:hover {
-  opacity: 1;
-}
-
-/* ===== SELECT DARK ===== */
-.form-select {
-  background-color: #1a1a1a !important;
-  border: 1px solid #2f2f2f !important;
-  color: #e5e5e5 !important;
-}
-
-/* Ícone da seta branco */
-.form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23e5e5e5' viewBox='0 0 16 16'%3e%3cpath d='M1.5 5l6 6 6-6'/%3e%3c/svg%3e") !important;
-}
-
-/* Focus */
-.form-select:focus {
-  background-color: #1a1a1a !important;
-  border-color: #555 !important;
-  box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.05);
-  color: #ffffff !important;
-}
-
-/* Dropdown options (melhora contraste) */
-.form-select option {
-  background-color: #1a1a1a;
-  color: #e5e5e5;
-}
-</style>
-
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  </style>
 </head>
-<body class="bg-light">
+<body class="min-h-screen flex flex-col selection:bg-brand selection:text-white">
 
-<!-- ================= HEADER ================= -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-  <span class="navbar-brand">
-    <i class="fa-solid fa-file-lines me-1"></i> Propostas
-  </span>
+  ${adminHeader('Propostas', filtrosHTML)}
 
-  <form class="d-flex ms-auto gap-2">
-    <input type="text" class="form-control" placeholder="Cliente" id="filtroCliente">
+  <main class="flex-grow container mx-auto px-4 md:px-6 py-8">
 
-    <input type="date" class="form-control" id="filtroInicio">
-    <input type="date" class="form-control" id="filtroFim">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-black text-white">Mural de Propostas</h2>
+      <button onclick="limparModalProposta(); abrirModal('modalProposta')" class="bg-brand hover:bg-brandDark text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center">
+        <i class="fa-solid fa-plus mr-2"></i> Nova
+      </button>
+    </div>
 
-    <button type="button" class="btn btn-outline-light" onclick="buscarPropostas()">
-      <i class="fa fa-search"></i>
-    </button>
-  </form>
-</nav>
+    <div id="loadingPropostas" class="hidden py-20 text-center">
+        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand mb-4"></i>
+        <p class="text-gray-500 font-medium">Buscando propostas...</p>
+    </div>
 
-<!-- ================= CONTEÚDO ================= -->
-<div class="container my-4">
-
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Lista de Propostas</h4>
-
-    <button
-        class="btn btn-success"
-        data-bs-toggle="modal"
-        data-bs-target="#modalProposta"
-        onclick="limparModalProposta()"
-        >
-        <i class="fa fa-plus"></i> Nova Proposta
-        </button>
-
-  </div>
-
-  <!-- LOADING -->
-<div id="loadingPropostas" class="text-center my-5 d-none">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Carregando...</span>
-  </div>
-  <div class="mt-2 text-muted">
-    Carregando propostas...
-  </div>
-</div>
-
-
-  <!-- LISTA -->
-  <div id="listaPropostas" class="row g-3">
-    <!-- Cards gerados via JS -->
-  </div>
-
-  <!-- PAGINAÇÃO -->
-  <nav class="mt-3">
-    <ul class="pagination pagination-sm justify-content-center" id="paginacaoPropostas">
-      <!-- JS -->
-    </ul>
-  </nav>
-
-</div>
-
-<!-- ================= MODAL PROPOSTA ================= -->
-<div class="modal fade" id="modalProposta" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-
-      <!-- HEADER -->
-      <div class="modal-header">
-        <h5 class="modal-title">Proposta</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div id="listaPropostas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-max">
       </div>
 
-      <!-- BODY -->
-      <div class="modal-body">
+    <nav class="mt-8 flex justify-center">
+      <ul id="paginacaoPropostas" class="flex space-x-1">
+        </ul>
+    </nav>
 
+  </main>
+
+  <div id="modalProposta" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0 px-4" style="transition: opacity 0.3s ease;">
+    <div class="modal-panel bg-gray-900 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl border border-gray-700 transform scale-95 transition-transform duration-300">
+      
+      <div class="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 rounded-t-2xl shrink-0">
+        <h3 class="text-xl font-black text-white"><i class="fa-solid fa-file-signature text-brand mr-2"></i> Proposta</h3>
+        <button type="button" onclick="fecharModal('modalProposta')" class="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-grow custom-scrollbar">
         <input type="hidden" id="propostaId">
 
-        <!-- 🔹 DADOS PRINCIPAIS -->
-        <div class="mb-4">
-          <h6 class="text-muted mb-3">Dados da Proposta</h6>
-
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Cliente</label>
-              <input type="text" class="form-control" id="cliente">
+        <div class="mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
+          <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Identificação</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Cliente</label>
+              <input type="text" id="cliente" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand">
             </div>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Designer</label>
-            <select class="form-select" id="designer">
-              <option value="">Selecione</option>
-              <option value="David">David</option>
-              <option value="Salleth">Salleth</option>
-            </select>
-          </div>
-
-        </div>
-
-        <!-- 🔹 PRAZO DA PROPOSTA -->
-        <div class="mb-4">
-          <h6 class="text-muted mb-3">Prazo da Proposta</h6>
-
-          <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-              <label class="form-label">Data início</label>
-              <input type="date" class="form-control" id="dataInicio">
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Data fim</label>
-              <input type="date" class="form-control" id="dataFim">
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label d-block">Duração</label>
-              <span id="duracaoBadge" class="badge bg-secondary">—</span>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Designer</label>
+              <select id="designer" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand">
+                <option value="">Selecione...</option>
+                <option value="David">David</option>
+                <option value="Salleth">Salleth</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <!-- 🔹 CLICHÊ -->
-        <div class="mb-4">
-          <h6 class="text-muted mb-3">Clichê</h6>
-
-          <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-              <label class="form-label">Data solicitação</label>
-              <input type="date" class="form-control" id="dataSolicitacaoCliche">
+        <div class="mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
+          <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Cronograma</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Data de Início</label>
+              <input type="date" id="dataInicio" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand">
             </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Data chegada</label>
-              <input type="date" class="form-control" id="dataChegadaCliche">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Data Fim (Previsão)</label>
+              <input type="date" id="dataFim" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand">
             </div>
-
-            <div class="col-md-3">
-              <label class="form-label d-block">Prazo do clichê</label>
-              <span id="prazoClicheBadge" class="badge bg-secondary">—</span>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Duração da Arte</label>
+              <span id="duracaoBadge" class="bg-gray-700 text-gray-400 px-3 py-2 rounded-lg text-xs font-bold block text-center border border-gray-600">—</span>
             </div>
           </div>
         </div>
 
-        <!-- 🔹 OBSERVAÇÃO -->
-        <div class="mb-4">
-          <h6 class="text-muted mb-3">Observações</h6>
-
-          <textarea
-            class="form-control"
-            rows="3"
-            id="observacao"
-          ></textarea>
+        <div class="mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
+          <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Logística de Clichê</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Solicitação</label>
+              <input type="date" id="dataSolicitacaoCliche" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Chegada</label>
+              <input type="date" id="dataChegadaCliche" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-1">Tempo de Trânsito</label>
+              <span id="prazoClicheBadge" class="bg-gray-700 text-gray-400 px-3 py-2 rounded-lg text-xs font-bold block text-center border border-gray-600">—</span>
+            </div>
+          </div>
         </div>
 
-        <hr>
-
-        <!-- 🔹 MODIFICAÇÕES -->
-        <div class="mb-2 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0">Modificações</h6>
-
-          <button
-            class="btn btn-sm btn-outline-primary"
-            onclick="abrirNovaModificacao()"
-          >
-            <i class="fa fa-plus"></i> Adicionar
-          </button>
+        <div class="mb-6">
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Observações Gerais</label>
+          <textarea id="observacao" rows="3" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand" placeholder="Detalhes do pedido..."></textarea>
         </div>
 
-        <div id="listaModificacoes">
-          <!-- Cards de modificações -->
+        <div>
+          <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
+            <h4 class="text-sm font-bold text-gray-300"><i class="fa-solid fa-clock-rotate-left mr-2"></i> Histórico de Modificações</h4>
+            <button type="button" onclick="abrirNovaModificacao()" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white px-3 py-1.5 rounded text-xs font-bold transition-colors">
+              <i class="fa fa-plus mr-1"></i> Add Alteração
+            </button>
+          </div>
+          <div id="listaModificacoes" class="space-y-2">
+            </div>
         </div>
 
       </div>
 
-      <!-- FOOTER -->
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancelar
-        </button>
-        <button
-  type="button"
-  class="btn btn-primary"
-  onclick="salvarProposta()"
->
-  Salvar
-</button>
-
+      <div class="px-6 py-4 border-t border-gray-800 bg-gray-900 rounded-b-2xl flex justify-between items-center shrink-0">
+        <div>
+            <button type="button" id="btnExcluirModal" class="hidden bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center text-sm shadow-sm">
+                <i class="fa-solid fa-trash mr-2"></i> Excluir
+            </button>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" onclick="fecharModal('modalProposta')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2 px-4 md:px-6 rounded-lg transition-colors text-sm md:text-base">Cancelar</button>
+            <button type="button" onclick="salvarProposta()" class="bg-brand hover:bg-brandDark text-white font-bold py-2 px-6 md:px-8 rounded-lg shadow-lg transition-colors text-sm md:text-base">Salvar</button>
+        </div>
       </div>
 
     </div>
   </div>
-</div>
 
-
-<!-- ================= SCRIPTS ================= -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="/public/js/propostas.js"></script>
-
-<div class="modal fade" id="modalSucesso" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title">
-          <i class="fa fa-check-circle"></i> Sucesso
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <div id="modalSucesso" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[110] hidden flex items-center justify-center transition-opacity opacity-0 px-4">
+    <div class="modal-panel bg-gray-900 rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl border border-gray-700 transform scale-95 transition-transform duration-300">
+      <div class="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-check text-3xl"></i>
       </div>
-
-      <div class="modal-body text-center">
-        <p id="mensagemSucesso" class="mb-0">
-          Operação realizada com sucesso.
-        </p>
-      </div>
-
-      <div class="modal-footer justify-content-center">
-        <button class="btn btn-success" data-bs-dismiss="modal">
-          OK
-        </button>
-      </div>
-
+      <h3 class="text-xl font-black text-white mb-2">Sucesso!</h3>
+      <p id="mensagemSucesso" class="text-gray-400 text-sm mb-6">Operação realizada com sucesso.</p>
+      <button type="button" onclick="fecharModal('modalSucesso')" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 rounded-lg transition-colors">OK, Entendi</button>
     </div>
   </div>
-</div>
 
-<div class="modal fade" id="modalConfirmacao" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">
-          <i class="fa fa-exclamation-triangle"></i> Confirmação
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <div id="modalConfirmacao" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[110] hidden flex items-center justify-center transition-opacity opacity-0 px-4">
+    <div class="modal-panel bg-gray-900 rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl border border-gray-700 transform scale-95 transition-transform duration-300">
+      <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
       </div>
-
-      <div class="modal-body text-center">
-        <p id="mensagemConfirmacao">
-          Tem certeza que deseja realizar esta ação?
-        </p>
+      <h3 class="text-xl font-black text-white mb-2">Atenção</h3>
+      <p id="mensagemConfirmacao" class="text-gray-400 text-sm mb-6">Tem certeza que deseja realizar esta ação?</p>
+      <div class="flex gap-3">
+        <button type="button" onclick="fecharModal('modalConfirmacao')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-lg transition-colors">Cancelar</button>
+        <button type="button" id="btnConfirmarAcao" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg shadow-lg transition-colors">Sim, Excluir</button>
       </div>
-
-      <div class="modal-footer justify-content-center">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancelar
-        </button>
-        <button class="btn btn-danger" id="btnConfirmarAcao">
-          Confirmar
-        </button>
-      </div>
-
     </div>
   </div>
-</div>
 
-
+  <script src="/public/js/propostas.js"></script>
 </body>
 </html>
-`;
+  `;
 }
 
 module.exports = propostasView;

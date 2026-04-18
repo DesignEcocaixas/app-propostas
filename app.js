@@ -2,7 +2,11 @@
 const express = require('express');
 const path = require('path');
 const db = require('./db');
+const fs = require('fs');
+const multer = require('multer');
+const gabaritosView = require('./views/gabaritosView');
 const propostasView = require('./views/propostasView');
+const painelView = require('./views/painelView');
 
 const app = express();
 const PORT = process.env.PORT || 3050;
@@ -93,12 +97,120 @@ app.post('/propostas', async (req, res) => {
   }
 });
 
-// Criar proposta
+// =======================
+// CONFIGURAÇÃO DO MULTER - GABARITOS
+// =======================
+const storageGabaritos = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = path.join(__dirname, 'public', 'gabaritos');
+    // Cria a pasta public/gabaritos automaticamente se ela não existir
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    // Adiciona um timestamp para evitar nomes duplicados no servidor
+    const safeName = file.originalname.replace(/\s+/g, '-');
+    cb(null, Date.now() + '-' + safeName);
+  }
+});
+const uploadGabarito = multer({ storage: storageGabaritos });
+
+
+// =======================
+// ROTAS – GABARITOS
+// =======================
+
+// 1. Renderizar a página de gabaritos
+app.get('/admin/gabaritos', async (req, res) => {
+  try {
+    const [gabaritos] = await db.query('SELECT * FROM gabaritos ORDER BY criada_em DESC');
+    res.send(gabaritosView(gabaritos));
+  } catch (err) {
+    console.error('Erro ao carregar a página de gabaritos:', err);
+    res.status(500).send('Erro interno ao carregar os gabaritos.');
+  }
+});
+
+// =======================
+// API – BUSCAR DETALHES POR DIA (PARA O MODAL DO GRÁFICO)
+// =======================
+app.get('/admin/api/propostas-por-dia/:data', async (req, res) => {
+  try {
+    const { data } = req.params; // Formato YYYY-MM-DD
+    const [propostas] = await db.query(
+      `SELECT id, cliente, designer, DATE_FORMAT(data_inicio, '%H:%i') as hora 
+       FROM propostas 
+       WHERE DATE(criada_em) = ? 
+       ORDER BY criada_em DESC`,
+      [data]
+    );
+    res.json(propostas);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar detalhes do dia' });
+  }
+});
+
+
+// 2. Upload de novo gabarito
+app.post('/admin/gabaritos/upload', uploadGabarito.single('arquivo_gabarito'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send('Nenhum arquivo enviado ou formato inválido.');
+    }
+
+    const nome_original = req.file.originalname;
+    const caminho_url = `/public/gabaritos/${req.file.filename}`;
+
+    await db.query(
+      'INSERT INTO gabaritos (nome, url) VALUES (?, ?)',
+      [nome_original, caminho_url]
+    );
+
+    res.redirect('/admin/gabaritos');
+  } catch (err) {
+    console.error('Erro ao salvar o gabarito:', err);
+    res.status(500).send('Erro interno ao salvar o arquivo.');
+  }
+});
+
+// 3. Deletar gabarito (Remove do DB e da pasta física)
+app.post('/admin/gabaritos/delete/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Busca o gabarito no banco para descobrir onde o arquivo físico está salvo
+    const [[gabarito]] = await db.query('SELECT url FROM gabaritos WHERE id = ?', [id]);
+
+    if (gabarito) {
+      // Monta o caminho absoluto do arquivo no servidor
+      const filePath = path.join(__dirname, gabarito.url);
+      
+      // Se o arquivo existir na pasta, apaga ele
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      // Deleta o registro do banco de dados
+      await db.query('DELETE FROM gabaritos WHERE id = ?', [id]);
+    }
+
+    res.redirect('/admin/gabaritos');
+  } catch (err) {
+    console.error('Erro ao excluir gabarito:', err);
+    res.status(500).send('Erro interno ao tentar excluir o arquivo.');
+  }
+});
+
+// Buscar propostas paginadas
 app.get('/propostas', async (req, res) => {
   try {
     const { cliente, data_inicio, data_fim, page = 1 } = req.query;
 
-    const limit = 9;
+    // CORREÇÃO: Limite de itens por página ajustado para 24
+    const limit = 24;
     const offset = (page - 1) * limit;
 
     let where = 'WHERE 1=1';
@@ -303,6 +415,72 @@ app.put('/modificacoes/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Erro ao atualizar modificação' });
+  }
+});
+
+// =======================
+// ROTA – PAINEL / DASHBOARD
+// =======================
+app.get('/admin', async (req, res) => {
+  try {
+    // 1. Busca as propostas agrupadas por dia dos últimos 3 meses
+    // CORREÇÃO: Usando DATE_FORMAT no GROUP BY para evitar erro de only_full_group_by
+    const [rows] = await db.query(`
+      SELECT 
+        DATE_FORMAT(criada_em, '%Y-%m-%d') as data_criacao,
+        COUNT(id) as total
+      FROM propostas
+      WHERE criada_em >= DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL 2 MONTH), '%Y-%m-01')
+      GROUP BY DATE_FORMAT(criada_em, '%Y-%m-%d')
+      ORDER BY data_criacao ASC
+    `);
+
+    // 2. Estrutura para os 3 meses
+    const dataAtual = new Date();
+    const mesesGrafico = [];
+
+    // Nomes dos meses em português
+    const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+    for (let i = 0; i < 3; i++) {
+      // Cria a data voltando os meses
+      const d = new Date(dataAtual.getFullYear(), dataAtual.getMonth() - i, 1);
+      mesesGrafico.push({
+        mes: d.getMonth(),
+        ano: d.getFullYear(),
+        nome: nomesMeses[d.getMonth()],
+        dias: [],
+        totais: []
+      });
+    }
+
+    // 3. Preenche os dias de cada mês com 0 (para o gráfico não ficar com buracos)
+    mesesGrafico.forEach(m => {
+      const diasNoMes = new Date(m.ano, m.mes + 1, 0).getDate();
+      for (let dia = 1; dia <= diasNoMes; dia++) {
+        m.dias.push(dia.toString().padStart(2, '0'));
+        m.totais.push(0); // Inicia vazio
+      }
+    });
+
+    // 4. Preenche com os dados reais vindos do Banco de Dados
+    rows.forEach(row => {
+      // Pega ano, mes e dia separadamente da string YYYY-MM-DD para evitar fuso horário
+      const [ano, mes, dia] = row.data_criacao.split('-');
+      
+      const mesIndex = mesesGrafico.findIndex(m => m.ano === parseInt(ano) && m.mes === (parseInt(mes) - 1));
+      if (mesIndex !== -1) {
+        // -1 porque o array de totais começa no índice 0 (dia 1 = index 0)
+        mesesGrafico[mesIndex].totais[parseInt(dia) - 1] = row.total;
+      }
+    });
+
+    // Renderiza enviando os dados JSON prontos
+    res.send(painelView(mesesGrafico));
+
+  } catch (err) {
+    console.error('Erro ao carregar o painel:', err);
+    res.status(500).send('Erro interno ao carregar o dashboard.');
   }
 });
 
