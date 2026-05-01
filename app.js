@@ -211,7 +211,7 @@ app.get('/propostas', async (req, res) => {
   try {
     const { cliente, data_inicio, data_fim, page = 1 } = req.query;
 
-    const limit = 24; // Atualizado para suportar grid 4x6
+    const limit = 30; // Atualizado para suportar grid 4x6
     const offset = (page - 1) * limit;
 
     let where = 'WHERE 1=1';
