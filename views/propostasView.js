@@ -59,8 +59,8 @@ function propostasView() {
 
   ${adminHeader('Propostas', filtrosHTML)}
 
-  <!-- A MÁGICA ACONTECE AQUI: lg:w-auto faz o conteúdo respeitar a barra lateral e flex-grow preenche a altura -->
-  <main class="flex-grow px-4 md:px-6 lg:px-8 py-8 w-full lg:w-auto">
+  <!-- Adicionado pb-16 (padding-bottom extra) para garantir que o último item e a paginação não fiquem colados no fim da tela -->
+  <main class="flex-grow px-4 md:px-6 lg:px-8 pt-8 pb-16 w-full lg:w-auto flex flex-col">
 
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-black text-white lg:hidden">Mural</h2>
@@ -81,11 +81,12 @@ function propostasView() {
         <p class="text-gray-500 font-medium">Buscando propostas...</p>
     </div>
 
-    <!-- Grid fluido: adicionado 2xl:grid-cols-6 para telas ultra-wide manterem os cards pequenos -->
-    <div id="listaPropostas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 auto-rows-max">
+    <!-- Adicionado pb-8 para dar um respiro extra entre a última linha de cards e a paginação -->
+    <div id="listaPropostas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 auto-rows-max flex-grow pb-8">
     </div>
 
-    <nav class="mt-8 flex justify-center">
+    <!-- Paginação empurrada para o fim usando mt-auto (margin-top auto) se o flex-grow acima empurrar -->
+    <nav class="mt-auto pt-4 border-t border-gray-800/50 flex justify-center">
       <ul id="paginacaoPropostas" class="flex space-x-1">
       </ul>
     </nav>
