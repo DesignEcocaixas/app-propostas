@@ -9,7 +9,7 @@ module.exports = function painelView(dadosGraficos) {
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard | EcoAdmin</title>
+  <title>Dashboard | Ecocaixas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -33,11 +33,12 @@ module.exports = function painelView(dadosGraficos) {
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-brand selection:text-white">
+<body class="min-h-screen flex flex-col selection:bg-brand selection:text-white overflow-x-hidden">
 
   ${adminHeader('Painel')}
 
-  <main class="flex-grow container mx-auto px-4 md:px-6 py-6">
+  <!-- A MÁGICA AQUI: removido 'container mx-auto' e adicionado 'w-full lg:w-auto' -->
+  <main class="flex-grow px-4 md:px-6 lg:px-8 py-6 w-full lg:w-auto">
     
     <div class="mb-6 flex justify-between items-center">
       <div>

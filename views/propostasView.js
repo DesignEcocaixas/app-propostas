@@ -5,21 +5,21 @@ function propostasView() {
   
   // HTML da Barra de Pesquisa a ser injetado no Header
   const filtrosHTML = `
-    <form class="flex w-full max-w-2xl gap-2 items-center" onsubmit="event.preventDefault(); buscarPropostas(1);">
-        <div class="relative flex-grow">
+    <form class="flex w-full gap-2 items-center justify-end" onsubmit="event.preventDefault(); buscarPropostas(1);">
+        <div class="relative w-full max-w-xs">
             <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
-            <input type="text" id="filtroCliente" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar por cliente...">
+            <input type="text" id="filtroCliente" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar cliente...">
         </div>
         
-        <div class="hidden md:flex items-center gap-2 shrink-0">
-            <input type="date" id="filtroInicio" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand transition-colors h-10">
+        <div class="hidden lg:flex items-center gap-2 shrink-0">
+            <input type="date" id="filtroInicio" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand transition-colors h-10 w-36">
             <span class="text-gray-500 text-sm">até</span>
-            <input type="date" id="filtroFim" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand transition-colors h-10">
+            <input type="date" id="filtroFim" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-brand transition-colors h-10 w-36">
         </div>
 
         <button type="button" onclick="buscarPropostas(1)" class="bg-brand hover:bg-brandDark text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center shadow-lg shadow-brand/20 h-10 shrink-0">
-            <i class="fa-solid fa-search md:hidden"></i>
-            <span class="hidden md:inline">Pesquisar</span>
+            <i class="fa-solid fa-search lg:hidden"></i>
+            <span class="hidden lg:inline">Buscar</span>
         </button>
     </form>
   `;
@@ -29,7 +29,7 @@ function propostasView() {
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema de Propostas | EcoAdmin</title>
+  <title>Sistema de Propostas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -55,17 +55,25 @@ function propostasView() {
     ::-webkit-scrollbar-thumb:hover { background: #64748b; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-brand selection:text-white">
+<body class="min-h-screen flex flex-col selection:bg-brand selection:text-white overflow-x-hidden">
 
   ${adminHeader('Propostas', filtrosHTML)}
 
-  <main class="flex-grow container mx-auto px-4 md:px-6 py-8">
+  <!-- A MÁGICA ACONTECE AQUI: lg:w-auto faz o conteúdo respeitar a barra lateral e flex-grow preenche a altura -->
+  <main class="flex-grow px-4 md:px-6 lg:px-8 py-8 w-full lg:w-auto">
 
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-black text-white">Mural de Propostas</h2>
-      <button onclick="limparModalProposta(); abrirModal('modalProposta')" class="bg-brand hover:bg-brandDark text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center">
-        <i class="fa-solid fa-plus mr-2"></i> Nova
-      </button>
+      <h2 class="text-2xl font-black text-white lg:hidden">Mural</h2>
+      
+      <div class="flex items-center gap-3 ml-auto">
+          <button type="button" onclick="abrirModalRelatorio()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center">
+            <i class="fa-solid fa-file-excel sm:mr-2"></i> <span class="hidden sm:inline">Relatório</span>
+          </button>
+          
+          <button onclick="limparModalProposta(); abrirModal('modalProposta')" class="bg-brand hover:bg-brandDark text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center">
+            <i class="fa-solid fa-plus sm:mr-2"></i> <span class="hidden sm:inline">Nova Proposta</span>
+          </button>
+      </div>
     </div>
 
     <div id="loadingPropostas" class="hidden py-20 text-center">
@@ -73,15 +81,50 @@ function propostasView() {
         <p class="text-gray-500 font-medium">Buscando propostas...</p>
     </div>
 
-    <div id="listaPropostas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-max">
-      </div>
+    <!-- Grid fluido: adicionado 2xl:grid-cols-6 para telas ultra-wide manterem os cards pequenos -->
+    <div id="listaPropostas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 auto-rows-max">
+    </div>
 
     <nav class="mt-8 flex justify-center">
       <ul id="paginacaoPropostas" class="flex space-x-1">
-        </ul>
+      </ul>
     </nav>
 
   </main>
+
+  <!-- Modal Relatório -->
+  <div id="modalRelatorio" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0 px-4" style="transition: opacity 0.3s ease;">
+    <div class="modal-panel bg-gray-900 rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-gray-700 transform scale-95 transition-transform duration-300">
+      
+      <div class="flex justify-between items-center mb-5 border-b border-gray-800 pb-4">
+        <h3 class="text-xl font-black text-white"><i class="fa-solid fa-file-excel text-brand mr-2"></i> Exportar Relatório</h3>
+        <button type="button" onclick="fecharModal('modalRelatorio')" class="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="mb-6 flex gap-4">
+        <div class="flex-1">
+          <label class="block text-xs font-bold text-gray-400 mb-1">Mês</label>
+          <select id="relatorioMes" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand">
+          </select>
+        </div>
+        <div class="flex-1">
+          <label class="block text-xs font-bold text-gray-400 mb-1">Ano</label>
+          <select id="relatorioAno" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand">
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="button" onclick="fecharModal('modalRelatorio')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-lg transition-colors text-sm">Cancelar</button>
+        <button type="button" onclick="baixarRelatorioExcel()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow-lg transition-colors text-sm flex justify-center items-center">
+            <i class="fa-solid fa-download mr-2"></i> Baixar
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <div id="modalProposta" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0 px-4" style="transition: opacity 0.3s ease;">
     <div class="modal-panel bg-gray-900 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl border border-gray-700 transform scale-95 transition-transform duration-300">
@@ -209,6 +252,72 @@ function propostasView() {
   </div>
 
   <script src="/public/js/propostas.js"></script>
+  
+  <script>
+    async function abrirModalRelatorio() {
+        if (typeof abrirModal === 'function') {
+            abrirModal('modalRelatorio');
+        }
+
+        const anoSelect = document.getElementById('relatorioAno');
+        const mesSelect = document.getElementById('relatorioMes');
+        
+        anoSelect.innerHTML = '<option value="">Carregando...</option>';
+        mesSelect.innerHTML = '<option value="">Carregando...</option>';
+
+        try {
+            const response = await fetch('/admin/api/periodos-disponiveis');
+            const periodos = await response.json();
+
+            if (periodos.length === 0) {
+                anoSelect.innerHTML = '<option value="">Sem registros</option>';
+                mesSelect.innerHTML = '<option value="">Sem registros</option>';
+                return;
+            }
+
+            const anosUnicos = [...new Set(periodos.map(p => p.ano))];
+            anoSelect.innerHTML = anosUnicos.map(ano => \`<option value="\${ano}">\${ano}</option>\`).join('');
+
+            function atualizarMeses() {
+                const anoSelecionado = parseInt(anoSelect.value);
+                const mesesDoAno = periodos.filter(p => p.ano === anoSelecionado).map(p => p.mes);
+                
+                const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                
+                mesSelect.innerHTML = mesesDoAno.map(mes => {
+                    const mesFormatado = String(mes).padStart(2, '0');
+                    return \`<option value="\${mesFormatado}">\${nomesMeses[mes - 1]}</option>\`;
+                }).join('');
+            }
+
+            anoSelect.addEventListener('change', atualizarMeses);
+            atualizarMeses(); 
+
+        } catch (error) {
+            console.error("Erro ao carregar períodos", error);
+            anoSelect.innerHTML = '<option value="">Erro</option>';
+            mesSelect.innerHTML = '<option value="">Erro</option>';
+        }
+    }
+
+    function baixarRelatorioExcel() {
+        const mes = document.getElementById('relatorioMes').value;
+        const ano = document.getElementById('relatorioAno').value;
+        
+        if(!mes || !ano) return;
+
+        if (window.showGlobalLoading) { 
+            window.showGlobalLoading(); 
+            setTimeout(() => window.hideGlobalLoading(), 1500); 
+        }
+
+        if (typeof fecharModal === 'function') {
+            fecharModal('modalRelatorio');
+        }
+
+        window.location.href = \`/propostas/exportar/excel?mes=\${mes}&ano=\${ano}\`;
+    }
+  </script>
 </body>
 </html>
   `;

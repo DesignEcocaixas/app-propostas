@@ -4,6 +4,7 @@ const path = require('path');
 const db = require('./db');
 const fs = require('fs');
 const multer = require('multer');
+const ExcelJS = require('exceljs');
 const gabaritosView = require('./views/gabaritosView');
 const propostasView = require('./views/propostasView');
 const painelView = require('./views/painelView');
@@ -489,6 +490,192 @@ app.delete('/modificacoes/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Erro ao deletar modificação' });
+  }
+});
+
+// =======================
+// EXPORTAR RELATÓRIO EXCEL (COM FILTRO MÊS/ANO E MÉDIAS)
+// =======================
+app.get('/propostas/exportar/excel', async (req, res) => {
+  try {
+    const { mes, ano } = req.query;
+    let whereClause = '';
+    const queryParams = [];
+
+    // Adiciona o filtro caso mes e ano sejam informados pela URL
+    if (mes && ano) {
+      whereClause = 'WHERE MONTH(p.data_inicio) = ? AND YEAR(p.data_inicio) = ?';
+      queryParams.push(mes, ano);
+    }
+
+    const query = `
+      SELECT 
+        p.cliente,
+        p.designer,
+        p.data_inicio,
+        p.data_fim,
+        p.data_solicitacao_cliche,
+        p.data_chegada_cliche,
+        COUNT(m.id) AS total_modificacoes
+      FROM propostas p
+      LEFT JOIN proposta_modificacoes m ON m.proposta_id = p.id
+      ${whereClause}
+      GROUP BY p.id
+      ORDER BY p.data_inicio DESC
+    `;
+
+    const [rows] = await db.query(query, queryParams);
+
+    // Criação do Workbook e Worksheet nativos do Excel (.xlsx)
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Relatório');
+
+    // Configuração das colunas e larguras
+    worksheet.columns = [
+      { header: 'Mês / Ano', key: 'mesAno', width: 15 },
+      { header: 'Cliente', key: 'cliente', width: 35 },
+      { header: 'Designer', key: 'designer', width: 20 },
+      { header: 'Alterações', key: 'alteracoes', width: 15 },
+      { header: 'Duração da Arte (Dias)', key: 'diasArte', width: 25 },
+      { header: 'Logística Clichê (Dias)', key: 'diasCliche', width: 25 },
+      { header: 'Status', key: 'status', width: 20 }
+    ];
+
+    // Estilizando o cabeçalho (Linha 1)
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF029723' } // Cor verde (brand)
+      };
+      cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, size: 12 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    if (rows.length === 0) {
+      worksheet.addRow({ mesAno: 'Nenhum registro encontrado para este período.' });
+      worksheet.mergeCells('A2:G2');
+      worksheet.getCell('A2').alignment = { horizontal: 'center' };
+    } else {
+      // Variáveis para o cálculo da média
+      let somaAlteracoes = 0;
+      let somaDiasArte = 0;
+      let countDiasArte = 0;
+      let somaDiasCliche = 0;
+      let countDiasCliche = 0;
+
+      rows.forEach(row => {
+        let mesAno = '-';
+        let diasArteTexto = '-';
+        let diasClicheTexto = '-';
+        let status = 'Em andamento';
+
+        let diasArteNum = 0;
+        let diasClicheNum = 0;
+
+        // Tratando o Mês/Ano
+        if (row.data_inicio) {
+          const d = new Date(row.data_inicio);
+          mesAno = (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+        }
+
+        // Calculando dias de Arte
+        if (row.data_inicio && row.data_fim) {
+          const ms = new Date(row.data_fim) - new Date(row.data_inicio);
+          diasArteNum = Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1;
+          diasArteTexto = diasArteNum;
+          status = 'Concluída';
+          
+          somaDiasArte += diasArteNum;
+          countDiasArte++;
+        }
+
+        // Calculando dias do Clichê
+        if (row.data_solicitacao_cliche && row.data_chegada_cliche) {
+          const ms = new Date(row.data_chegada_cliche) - new Date(row.data_solicitacao_cliche);
+          diasClicheNum = Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1;
+          diasClicheTexto = diasClicheNum;
+          
+          somaDiasCliche += diasClicheNum;
+          countDiasCliche++;
+        }
+
+        somaAlteracoes += (row.total_modificacoes || 0);
+
+        // Adiciona a linha de dados
+        worksheet.addRow({
+          mesAno: mesAno,
+          cliente: row.cliente || '',
+          designer: row.designer || '-',
+          alteracoes: row.total_modificacoes || 0,
+          diasArte: diasArteTexto,
+          diasCliche: diasClicheTexto,
+          status: status
+        }).alignment = { horizontal: 'center' }; // Centraliza o texto das linhas
+      });
+
+      // === ADICIONANDO A LINHA DE MÉDIAS ===
+      const mediaAlteracoes = (somaAlteracoes / rows.length).toFixed(1);
+      const mediaDiasArte = countDiasArte > 0 ? (somaDiasArte / countDiasArte).toFixed(1) : '-';
+      const mediaDiasCliche = countDiasCliche > 0 ? (somaDiasCliche / countDiasCliche).toFixed(1) : '-';
+
+      const rowMedia = worksheet.addRow({
+        mesAno: 'MÉDIAS',
+        cliente: '-',
+        designer: '-',
+        alteracoes: mediaAlteracoes,
+        diasArte: mediaDiasArte,
+        diasCliche: mediaDiasCliche,
+        status: '-'
+      });
+
+      // Estilizando a linha de médias para destaque
+      rowMedia.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FF1E293B' } };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE2E8F0' } // Fundo cinza claro
+        };
+        cell.alignment = { horizontal: 'center' };
+      });
+    }
+
+    // Nome dinâmico e extensão correta (.xlsx)
+    const fileName = (mes && ano) ? `relatorio_propostas_${mes}_${ano}.xlsx` : `relatorio_propostas.xlsx`;
+
+    // Headers nativos para Excel .xlsx
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+
+    // Escreve o buffer direto na resposta HTTP
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error('Erro ao exportar excel:', err);
+    res.status(500).send('Erro ao gerar relatório');
+  }
+});
+
+// =======================
+// API - BUSCAR PERÍODOS DISPONÍVEIS (PARA O MODAL EXCEL)
+// =======================
+app.get('/admin/api/periodos-disponiveis', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT DISTINCT 
+        MONTH(data_inicio) as mes, 
+        YEAR(data_inicio) as ano 
+      FROM propostas 
+      WHERE data_inicio IS NOT NULL 
+      ORDER BY ano DESC, mes DESC
+    `);
+    
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar períodos disponíveis:', err);
+    res.status(500).json({ error: 'Erro ao buscar períodos' });
   }
 });
 

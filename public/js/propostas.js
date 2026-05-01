@@ -1,3 +1,5 @@
+// public/js/propostas.js
+
 let paginaAtual = 1;
 
 // ==========================================
@@ -205,7 +207,6 @@ async function buscarPropostas(page = 1) {
     }
 
     data.forEach(p => {
-      // Calcula os dias para o badge do Card
       let diasStr = '—';
       let badgeClass = 'bg-gray-700 text-gray-300';
       if (p.data_inicio && p.data_fim) {
@@ -216,23 +217,25 @@ async function buscarPropostas(page = 1) {
           badgeClass = dias <= 2 ? 'bg-green-500/20 text-green-400 border border-green-500/20' : 'bg-red-500/20 text-red-400 border border-red-500/20';
       }
 
-      // Card clicável com hover e badges dinâmicos
+      // NOVO LAYOUT DO CARD: Mais enxuto (p-3 em vez de p-4) e tipografia ajustada
       lista.innerHTML += `
-        <div class="bg-gray-800 rounded-xl p-4 border border-gray-700 hover:border-brand/50 hover:bg-gray-800/80 transition-all shadow-lg flex flex-col h-full cursor-pointer group" onclick="editarProposta(${p.id})">
-           <div class="flex justify-between items-start mb-2 gap-2">
-               <h5 class="font-black text-white text-base truncate w-full" title="${p.cliente}">${p.cliente}</h5>
-               <div class="flex gap-1.5 shrink-0">
-                   <span class="${badgeClass} text-[10px] px-2 py-0.5 rounded font-bold whitespace-nowrap shadow-sm">${diasStr}</span>
-                   <span class="bg-gradient-to-r from-blue-600 to-pink-500 text-white text-[10px] px-2 py-0.5 rounded font-bold whitespace-nowrap shadow-sm">${p.total_modificacoes || 0} mod</span>
+        <div class="bg-gray-800 rounded-xl p-3 border border-gray-700 hover:border-brand/50 hover:bg-gray-800/80 transition-all shadow-lg flex flex-col h-full cursor-pointer group" onclick="editarProposta(${p.id})">
+           <div class="flex justify-between items-start mb-2 gap-1.5">
+               <h5 class="font-black text-white text-sm truncate w-full" title="${p.cliente}">${p.cliente}</h5>
+               <div class="flex flex-col gap-1 shrink-0 items-end">
+                   <span class="${badgeClass} text-[9px] px-1.5 py-[2px] rounded font-bold whitespace-nowrap shadow-sm leading-tight">${diasStr}</span>
+                   ${p.total_modificacoes > 0 ? `<span class="bg-gradient-to-r from-blue-600 to-pink-500 text-white text-[9px] px-1.5 py-[2px] rounded font-bold whitespace-nowrap shadow-sm leading-tight">${p.total_modificacoes} mod</span>` : ''}
                </div>
            </div>
            
-           <div class="text-[11px] font-bold text-gray-400 mb-2 flex items-center bg-gray-900 px-2 py-1.5 rounded border border-gray-700/50">
-               <i class="fa-regular fa-calendar text-brand mr-1.5"></i> ${formatarData(p.data_inicio)} <i class="fa-solid fa-arrow-right mx-1.5 text-gray-600"></i> ${formatarData(p.data_fim)}
+           <div class="text-[10px] font-bold text-gray-500 mb-1.5 flex items-center justify-between">
+               <span><i class="fa-regular fa-calendar text-gray-600 mr-1"></i> ${formatarData(p.data_inicio)}</span>
+               <i class="fa-solid fa-arrow-right text-[8px] text-gray-700"></i>
+               <span>${formatarData(p.data_fim)}</span>
            </div>
            
-           <div class="flex-grow">
-               <p class="text-xs text-gray-400 line-clamp-2 mt-1 leading-relaxed">${p.observacao || '<span class="italic opacity-50">Sem observações detalhadas</span>'}</p>
+           <div class="flex-grow pt-1 border-t border-gray-700/50">
+               <p class="text-[11px] text-gray-400 line-clamp-2 leading-tight">${p.observacao || '<span class="italic opacity-50">Sem observações detalhadas</span>'}</p>
            </div>
         </div>
       `;
