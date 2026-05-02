@@ -541,6 +541,14 @@ app.get('/propostas/exportar/excel', async (req, res) => {
       { header: 'Status', key: 'status', width: 20 }
     ];
 
+    // Objeto de estilo para aplicar bordas finas em todas as células
+    const borderStyle = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
     // Estilizando o cabeçalho (Linha 1)
     worksheet.getRow(1).eachCell((cell) => {
       cell.fill = {
@@ -550,12 +558,15 @@ app.get('/propostas/exportar/excel', async (req, res) => {
       };
       cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, size: 12 };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = borderStyle; // Adiciona as bordas no cabeçalho
     });
 
     if (rows.length === 0) {
       worksheet.addRow({ mesAno: 'Nenhum registro encontrado para este período.' });
       worksheet.mergeCells('A2:G2');
-      worksheet.getCell('A2').alignment = { horizontal: 'center' };
+      const cellA2 = worksheet.getCell('A2');
+      cellA2.alignment = { horizontal: 'center' };
+      cellA2.border = borderStyle; // Borda na célula mesclada
     } else {
       // Variáveis para o cálculo da média
       let somaAlteracoes = 0;
@@ -615,21 +626,22 @@ app.get('/propostas/exportar/excel', async (req, res) => {
 
         novaLinha.alignment = { horizontal: 'center' }; // Centraliza o texto das linhas
 
-        // === PINTA AS CÉLULAS QUE CONTÊM NÚMEROS ===
+        // === PINTA AS CÉLULAS COM NÚMEROS E APLICA BORDAS GERAIS ===
         novaLinha.eachCell((cell) => {
+          cell.border = borderStyle; // Garante borda para todas as células da linha
+          
           if (typeof cell.value === 'number') {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: 'FFE6F5E9' } // brandLight do Tailwind (Verde clarinho)
+              fgColor: { argb: 'FFFFF2CC' } // Fundo amarelo claro (destaque elegante)
             };
-            cell.font = { bold: true, color: { argb: 'FF015E15' } }; // brandDark (Verde escuro)
+            cell.font = { bold: true, color: { argb: 'FF000000' } }; // Fonte preta
           }
         });
       });
 
       // === ADICIONANDO A LINHA DE MÉDIAS ===
-      // Convertendo para Float para que o Excel identifique como número também
       const mediaAlteracoes = parseFloat((somaAlteracoes / rows.length).toFixed(1));
       const mediaDiasArte = countDiasArte > 0 ? parseFloat((somaDiasArte / countDiasArte).toFixed(1)) : '-';
       const mediaDiasCliche = countDiasCliche > 0 ? parseFloat((somaDiasCliche / countDiasCliche).toFixed(1)) : '-';
@@ -653,6 +665,7 @@ app.get('/propostas/exportar/excel', async (req, res) => {
           fgColor: { argb: 'FFE2E8F0' } // Fundo cinza claro
         };
         cell.alignment = { horizontal: 'center' };
+        cell.border = borderStyle; // Garante as bordas também na linha das médias
       });
     }
 
