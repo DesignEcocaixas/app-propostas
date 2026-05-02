@@ -152,7 +152,7 @@ function propostasView() {
               <select id="designer" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand">
                 <option value="">Selecione...</option>
                 <option value="David">David</option>
-                <option value="Salleth">Salleth</option>
+                <option value="Outro">Outro</option>
               </select>
             </div>
           </div>
