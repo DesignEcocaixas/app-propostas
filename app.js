@@ -626,23 +626,19 @@ app.get('/propostas/exportar/excel', async (req, res) => {
 
         novaLinha.alignment = { horizontal: 'center' }; // Centraliza o texto das linhas
 
-        // Verifica se a linha atual contém dados numéricos (ou seja, se a proposta tem métricas reais)
-        let linhaTemNumero = false;
-        novaLinha.eachCell((cell) => {
-          if (typeof cell.value === 'number') {
-            linhaTemNumero = true;
-          }
-        });
+        // Verifica especificamente se o campo de Logística Clichê é um número
+        const destacaLinha = typeof diasClicheTexto === 'number';
 
         // === PINTA A LINHA INTEIRA E APLICA BORDAS GERAIS ===
         novaLinha.eachCell((cell) => {
           cell.border = borderStyle; // Garante borda para todas as células da linha
           
-          if (linhaTemNumero) {
+          // Se a logística de clichê tem um número, preenche a linha inteira com amarelo
+          if (destacaLinha) {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: 'FFFFF2CC' } // Fundo amarelo claro PARA A LINHA INTEIRA
+              fgColor: { argb: 'FFFFF2CC' } 
             };
           }
 
