@@ -242,7 +242,7 @@ function propostasView() {
       </div>
       <h3 class="text-xl font-black text-white mb-2">Sucesso!</h3>
       <p id="mensagemSucesso" class="text-gray-400 text-sm mb-6">Operação realizada com sucesso.</p>
-      <button type="button" onclick="fecharModal('modalSucesso')" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 rounded-lg transition-colors">OK, Entendi</button>
+      <button type="button" onclick="fecharModal('modalSucesso')" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 rounded-lg transition-colors">OK</button>
     </div>
   </div>
 
