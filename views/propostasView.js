@@ -6,9 +6,15 @@ function propostasView() {
   // HTML da Barra de Pesquisa a ser injetado no Header
   const filtrosHTML = `
     <form class="flex w-full gap-2 items-center justify-end" onsubmit="event.preventDefault(); buscarPropostas(1);">
-        <div class="relative w-full max-w-xs">
-            <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
-            <input type="text" id="filtroCliente" autocomplete="off" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar cliente...">
+        <div class="relative w-full max-w-xs flex items-center">
+            <i class="fa-solid fa-search absolute left-3 text-gray-500 text-sm pointer-events-none"></i>
+            
+            <input type="text" id="filtroCliente" autocomplete="off" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-8 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar cliente...">
+            
+            <!-- BOTÃO DE LIMPAR (X) -->
+            <button type="button" id="btnLimparBusca" onclick="limparBusca()" class="absolute right-2 text-gray-500 hover:text-gray-300 hidden h-full px-2 flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
             
             <!-- DROPDOWN DE PESQUISA EM TEMPO REAL -->
             <div id="searchDropdown" class="absolute left-0 top-full mt-2 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-50 hidden max-h-80 overflow-y-auto custom-scrollbar flex-col">

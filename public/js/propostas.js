@@ -146,6 +146,26 @@ function calcularPrazoCliche() {
   atualizarBadgeTailwind(badge, `${dias} dia${dias > 1 ? 's' : ''}`, dias <= 2);
 }
 
+// ==========================================
+// FUNÇÕES DE BUSCA E LIMPEZA
+// ==========================================
+function limparBusca() {
+    const inputBusca = document.getElementById('filtroCliente');
+    const btnLimpar = document.getElementById('btnLimparBusca');
+    const dropdown = document.getElementById('searchDropdown');
+    
+    if (inputBusca) {
+        inputBusca.value = ''; // Limpa o texto
+        inputBusca.focus(); // Devolve o foco ao input
+    }
+    
+    if (btnLimpar) btnLimpar.classList.add('hidden'); // Esconde o "X"
+    if (dropdown) dropdown.classList.add('hidden'); // Esconde o dropdown
+    
+    // Dispara a busca para trazer todos os itens novamente
+    buscarPropostas(1);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dataInicio')?.addEventListener('change', calcularDuracao);
   document.getElementById('dataFim')?.addEventListener('change', calcularDuracao);
@@ -154,8 +174,17 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // EVENTOS PARA PESQUISA EM TEMPO REAL
   const inputBusca = document.getElementById('filtroCliente');
+  const btnLimpar = document.getElementById('btnLimparBusca');
+  
   if (inputBusca) {
       inputBusca.addEventListener('input', () => {
+          // Mostra ou esconde o botão de limpar ("X")
+          if (inputBusca.value.length > 0) {
+              btnLimpar?.classList.remove('hidden');
+          } else {
+              btnLimpar?.classList.add('hidden');
+          }
+
           clearTimeout(debounceTimer);
           // Aguarda 400ms após o usuário parar de digitar para fazer a busca
           debounceTimer = setTimeout(() => {
@@ -170,10 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
       });
       
-      // Esconder dropdown se clicar fora dele ou do input
+      // Esconder dropdown se clicar fora dele ou do input ou do botão "X"
       document.addEventListener('click', (e) => {
           const dropdown = document.getElementById('searchDropdown');
-          if (!inputBusca.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
+          if (!inputBusca.contains(e.target) && btnLimpar && !btnLimpar.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
               dropdown.classList.add('hidden');
           }
       });
