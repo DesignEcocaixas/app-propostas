@@ -603,7 +603,7 @@ app.get('/propostas/exportar/excel', async (req, res) => {
         somaAlteracoes += (row.total_modificacoes || 0);
 
         // Adiciona a linha de dados
-        worksheet.addRow({
+        const novaLinha = worksheet.addRow({
           mesAno: mesAno,
           cliente: row.cliente || '',
           designer: row.designer || '-',
@@ -611,13 +611,28 @@ app.get('/propostas/exportar/excel', async (req, res) => {
           diasArte: diasArteTexto,
           diasCliche: diasClicheTexto,
           status: status
-        }).alignment = { horizontal: 'center' }; // Centraliza o texto das linhas
+        });
+
+        novaLinha.alignment = { horizontal: 'center' }; // Centraliza o texto das linhas
+
+        // === PINTA AS CÉLULAS QUE CONTÊM NÚMEROS ===
+        novaLinha.eachCell((cell) => {
+          if (typeof cell.value === 'number') {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFE6F5E9' } // brandLight do Tailwind (Verde clarinho)
+            };
+            cell.font = { bold: true, color: { argb: 'FF015E15' } }; // brandDark (Verde escuro)
+          }
+        });
       });
 
       // === ADICIONANDO A LINHA DE MÉDIAS ===
-      const mediaAlteracoes = (somaAlteracoes / rows.length).toFixed(1);
-      const mediaDiasArte = countDiasArte > 0 ? (somaDiasArte / countDiasArte).toFixed(1) : '-';
-      const mediaDiasCliche = countDiasCliche > 0 ? (somaDiasCliche / countDiasCliche).toFixed(1) : '-';
+      // Convertendo para Float para que o Excel identifique como número também
+      const mediaAlteracoes = parseFloat((somaAlteracoes / rows.length).toFixed(1));
+      const mediaDiasArte = countDiasArte > 0 ? parseFloat((somaDiasArte / countDiasArte).toFixed(1)) : '-';
+      const mediaDiasCliche = countDiasCliche > 0 ? parseFloat((somaDiasCliche / countDiasCliche).toFixed(1)) : '-';
 
       const rowMedia = worksheet.addRow({
         mesAno: 'MÉDIAS',
@@ -629,9 +644,9 @@ app.get('/propostas/exportar/excel', async (req, res) => {
         status: '-'
       });
 
-      // Estilizando a linha de médias para destaque
+      // Estilizando a linha de médias para destaque (fundo cinza)
       rowMedia.eachCell((cell) => {
-        cell.font = { bold: true, color: { argb: 'FF1E293B' } };
+        cell.font = { bold: true, color: { argb: 'FF1E293B' } }; // Cinza escuro
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
