@@ -8,7 +8,11 @@ function propostasView() {
     <form class="flex w-full gap-2 items-center justify-end" onsubmit="event.preventDefault(); buscarPropostas(1);">
         <div class="relative w-full max-w-xs">
             <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
-            <input type="text" id="filtroCliente" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar cliente...">
+            <input type="text" id="filtroCliente" autocomplete="off" class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-brand transition-colors h-10" placeholder="Buscar cliente...">
+            
+            <!-- DROPDOWN DE PESQUISA EM TEMPO REAL -->
+            <div id="searchDropdown" class="absolute left-0 top-full mt-2 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-50 hidden max-h-80 overflow-y-auto custom-scrollbar flex-col">
+            </div>
         </div>
         
         <div class="hidden lg:flex items-center gap-2 shrink-0">
@@ -59,7 +63,6 @@ function propostasView() {
 
   ${adminHeader('Propostas', filtrosHTML)}
 
-  <!-- Adicionado pb-16 (padding-bottom extra) para garantir que o último item e a paginação não fiquem colados no fim da tela -->
   <main class="flex-grow px-4 md:px-6 lg:px-8 pt-8 pb-16 w-full lg:w-auto flex flex-col">
 
     <div class="flex justify-between items-center mb-6">
@@ -81,11 +84,9 @@ function propostasView() {
         <p class="text-gray-500 font-medium">Buscando propostas...</p>
     </div>
 
-    <!-- Adicionado pb-8 para dar um respiro extra entre a última linha de cards e a paginação -->
     <div id="listaPropostas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 auto-rows-max flex-grow pb-8">
     </div>
 
-    <!-- Paginação empurrada para o fim usando mt-auto (margin-top auto) se o flex-grow acima empurrar -->
     <nav class="mt-auto pt-4 border-t border-gray-800/50 flex justify-center">
       <ul id="paginacaoPropostas" class="flex space-x-1">
       </ul>
@@ -127,6 +128,7 @@ function propostasView() {
     </div>
   </div>
 
+  <!-- Modal Proposta -->
   <div id="modalProposta" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0 px-4" style="transition: opacity 0.3s ease;">
     <div class="modal-panel bg-gray-900 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl border border-gray-700 transform scale-95 transition-transform duration-300">
       
@@ -152,7 +154,7 @@ function propostasView() {
               <select id="designer" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-brand">
                 <option value="">Selecione...</option>
                 <option value="David">David</option>
-                <option value="Outro">Outro</option>
+                <option value="Salleth">Salleth</option>
               </select>
             </div>
           </div>

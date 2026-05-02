@@ -1,6 +1,7 @@
 // public/js/propostas.js
 
 let paginaAtual = 1;
+let debounceTimer; // Temporizador para pesquisa em tempo real
 
 // ==========================================
 // HELPERS DE MODAL (TAILWIND PURO)
@@ -150,6 +151,34 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dataFim')?.addEventListener('change', calcularDuracao);
   document.getElementById('dataSolicitacaoCliche')?.addEventListener('change', calcularPrazoCliche);
   document.getElementById('dataChegadaCliche')?.addEventListener('change', calcularPrazoCliche);
+  
+  // EVENTOS PARA PESQUISA EM TEMPO REAL
+  const inputBusca = document.getElementById('filtroCliente');
+  if (inputBusca) {
+      inputBusca.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          // Aguarda 400ms após o usuário parar de digitar para fazer a busca
+          debounceTimer = setTimeout(() => {
+              buscarPropostas(1);
+          }, 400);
+      });
+      
+      // Mostrar dropdown se o input ganhar foco e tiver texto
+      inputBusca.addEventListener('focus', () => {
+          if (inputBusca.value.trim() !== '') {
+              document.getElementById('searchDropdown')?.classList.remove('hidden');
+          }
+      });
+      
+      // Esconder dropdown se clicar fora dele ou do input
+      document.addEventListener('click', (e) => {
+          const dropdown = document.getElementById('searchDropdown');
+          if (!inputBusca.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
+              dropdown.classList.add('hidden');
+          }
+      });
+  }
+
   buscarPropostas();
 });
 
@@ -198,7 +227,35 @@ async function buscarPropostas(page = 1) {
     const data = Array.isArray(json.data) ? json.data : [];
     
     const lista = document.getElementById('listaPropostas');
+    const dropdown = document.getElementById('searchDropdown');
+    
     lista.innerHTML = '';
+    
+    // ATUALIZAÇÃO DO DROPDOWN (AUTOCOMPLETE)
+    if (dropdown) {
+        if (cliente.trim() !== '') {
+            dropdown.classList.remove('hidden');
+            dropdown.innerHTML = '';
+            
+            if (data.length === 0) {
+                dropdown.innerHTML = '<div class="p-4 text-xs text-gray-400 text-center font-medium">Nenhum cliente encontrado.</div>';
+            } else {
+                data.forEach(p => {
+                    dropdown.innerHTML += `
+                    <div class="p-3 border-b border-gray-700/50 hover:bg-gray-700 cursor-pointer transition-colors group" onclick="document.getElementById('searchDropdown').classList.add('hidden'); editarProposta(${p.id})">
+                        <div class="font-bold text-white text-sm truncate group-hover:text-brand transition-colors">${p.cliente}</div>
+                        <div class="text-[10px] text-gray-400 mt-1 flex justify-between items-center">
+                            <span><i class="fa-regular fa-calendar mr-1"></i>${formatarData(p.data_inicio) || 'Sem data'}</span>
+                            <span class="bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700">${p.designer || 'N/A'}</span>
+                        </div>
+                    </div>
+                    `;
+                });
+            }
+        } else {
+            dropdown.classList.add('hidden');
+        }
+    }
 
     if (data.length === 0) {
       lista.innerHTML = `<div class="col-span-full text-center py-10 bg-gray-900/50 rounded-xl border border-dashed border-gray-700 text-gray-400">Nenhuma proposta encontrada.</div>`;
@@ -209,17 +266,25 @@ async function buscarPropostas(page = 1) {
     data.forEach(p => {
       let diasStr = '—';
       let badgeClass = 'bg-gray-700 text-gray-300';
+      let cardBgClass = 'bg-gray-800 border-gray-700';
+      
       if (p.data_inicio && p.data_fim) {
           const d1 = new Date(p.data_inicio);
           const d2 = new Date(p.data_fim);
           const dias = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
           diasStr = `${dias} dia${dias > 1 ? 's' : ''}`;
-          badgeClass = dias <= 2 ? 'bg-green-500/20 text-green-400 border border-green-500/20' : 'bg-red-500/20 text-red-400 border border-red-500/20';
+          
+          if (dias <= 2) {
+              badgeClass = 'bg-green-500/20 text-green-400 border border-green-500/20';
+              cardBgClass = 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20'; 
+          } else {
+              badgeClass = 'bg-red-500/20 text-red-400 border border-red-500/20';
+              cardBgClass = 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20';
+          }
       }
 
-      // NOVO LAYOUT DO CARD: Mais enxuto (p-3 em vez de p-4) e tipografia ajustada
       lista.innerHTML += `
-        <div class="bg-gray-800 rounded-xl p-3 border border-gray-700 hover:border-brand/50 hover:bg-gray-800/80 transition-all shadow-lg flex flex-col h-full cursor-pointer group" onclick="editarProposta(${p.id})">
+        <div class="rounded-xl p-3 border hover:border-brand/50 transition-all shadow-lg flex flex-col h-full cursor-pointer group ${cardBgClass}" onclick="editarProposta(${p.id})">
            <div class="flex justify-between items-start mb-2 gap-1.5">
                <h5 class="font-black text-white text-sm truncate w-full" title="${p.cliente}">${p.cliente}</h5>
                <div class="flex flex-col gap-1 shrink-0 items-end">
