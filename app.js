@@ -558,7 +558,7 @@ app.get('/propostas/exportar/excel', async (req, res) => {
       };
       cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, size: 12 };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.border = borderStyle; // Adiciona as bordas no cabeçalho
+      cell.border = borderStyle;
     });
 
     if (rows.length === 0) {
@@ -566,7 +566,7 @@ app.get('/propostas/exportar/excel', async (req, res) => {
       worksheet.mergeCells('A2:G2');
       const cellA2 = worksheet.getCell('A2');
       cellA2.alignment = { horizontal: 'center' };
-      cellA2.border = borderStyle; // Borda na célula mesclada
+      cellA2.border = borderStyle;
     } else {
       // Variáveis para o cálculo da média
       let somaAlteracoes = 0;
@@ -626,17 +626,29 @@ app.get('/propostas/exportar/excel', async (req, res) => {
 
         novaLinha.alignment = { horizontal: 'center' }; // Centraliza o texto das linhas
 
-        // === PINTA AS CÉLULAS COM NÚMEROS E APLICA BORDAS GERAIS ===
+        // Verifica se a linha atual contém dados numéricos (ou seja, se a proposta tem métricas reais)
+        let linhaTemNumero = false;
+        novaLinha.eachCell((cell) => {
+          if (typeof cell.value === 'number') {
+            linhaTemNumero = true;
+          }
+        });
+
+        // === PINTA A LINHA INTEIRA E APLICA BORDAS GERAIS ===
         novaLinha.eachCell((cell) => {
           cell.border = borderStyle; // Garante borda para todas as células da linha
           
-          if (typeof cell.value === 'number') {
+          if (linhaTemNumero) {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: 'FFFFF2CC' } // Fundo amarelo claro (destaque elegante)
+              fgColor: { argb: 'FFFFF2CC' } // Fundo amarelo claro PARA A LINHA INTEIRA
             };
-            cell.font = { bold: true, color: { argb: 'FF000000' } }; // Fonte preta
+          }
+
+          // Adiciona negrito apenas nos números em si para que eles fiquem em destaque
+          if (typeof cell.value === 'number') {
+            cell.font = { bold: true, color: { argb: 'FF000000' } };
           }
         });
       });
@@ -656,16 +668,16 @@ app.get('/propostas/exportar/excel', async (req, res) => {
         status: '-'
       });
 
-      // Estilizando a linha de médias para destaque (fundo cinza)
+      // Estilizando a linha de médias para destaque (fundo cinza escuro e letras claras)
       rowMedia.eachCell((cell) => {
-        cell.font = { bold: true, color: { argb: 'FF1E293B' } }; // Cinza escuro
+        cell.font = { bold: true, color: { argb: 'FF1E293B' } }; 
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
           fgColor: { argb: 'FFE2E8F0' } // Fundo cinza claro
         };
         cell.alignment = { horizontal: 'center' };
-        cell.border = borderStyle; // Garante as bordas também na linha das médias
+        cell.border = borderStyle; 
       });
     }
 
